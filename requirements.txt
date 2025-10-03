@@ -1,4 +1,4 @@
-Django==5.2.7
+Django==5.2.7 
 psycopg2-binary==2.9.10
 python-decouple==3.8
 Flask==3.0.0
