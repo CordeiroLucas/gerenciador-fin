@@ -1,0 +1,413 @@
+{% extends 'base.html' %}
+
+{% block title %}Início - Controle Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-house"></i> Dashboard Financeiro
+        </h1>
+    </div>
+</div>
+
+<!-- Estatísticas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">
+                            <i class="bi bi-box"></i> Produtos
+                        </h6>
+                        <h3 class="mb-0">{{ total_produtos }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-box fs-1"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <a href="{% url 'produto_lista' %}" class="text-white text-decoration-none">
+                        Ver todos <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">
+                            <i class="bi bi-receipt"></i> Despesas
+                        </h6>
+                        <h3 class="mb-0">{{ total_despesas }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-receipt fs-1"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <a href="{% url 'despesa_lista' %}" class="text-dark text-decoration-none">
+                        Ver todas <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">
+                            <i class="bi bi-cart-check"></i> Vendas
+                        </h6>
+                        <h3 class="mb-0">{{ total_vendas }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-cart-check fs-1"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <a href="{% url 'venda_lista' %}" class="text-white text-decoration-none">
+                        Ver todas <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">
+                            <i class="bi bi-graph-up"></i> Lucro Líquido/Mês
+                        </h6>
+                        <h3 class="mb-0">R$ {{ lucro_liquido_mes|floatformat:0 }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-graph-up fs-1"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small>Receita: R$ {{ receita_mes|floatformat:0 }} | Despesas: R$ {{ despesas_pagas_mes|floatformat:0 }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ações Rápidas -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h3><i class="bi bi-lightning"></i> Ações Rápidas</h3>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-plus-circle fs-1 text-primary mb-3"></i>
+                <h5 class="card-title">Novo Produto</h5>
+                <p class="card-text">Cadastre um novo produto ou serviço</p>
+                <a href="{% url 'produto_criar' %}" class="btn btn-primary">
+                    <i class="bi bi-plus"></i> Criar
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-cart-plus fs-1 text-info mb-3"></i>
+                <h5 class="card-title">Nova Venda</h5>
+                <p class="card-text">Registre uma nova venda</p>
+                <a href="{% url 'venda_criar' %}" class="btn btn-info">
+                    <i class="bi bi-plus"></i> Registrar
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-receipt fs-1 text-warning mb-3"></i>
+                <h5 class="card-title">Nova Despesa</h5>
+                <p class="card-text">Registre uma nova despesa do negócio</p>
+                <a href="{% url 'despesa_criar' %}" class="btn btn-warning">
+                    <i class="bi bi-plus"></i> Registrar
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-calculator fs-1 text-warning mb-3"></i>
+                <h5 class="card-title">Precificação</h5>
+                <p class="card-text">Simule preços com diferentes margens</p>
+                <a href="{% url 'simulador_precificacao' %}" class="btn btn-warning">
+                    <i class="bi bi-calculator"></i> Simular
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-speedometer2 fs-1 text-primary mb-3"></i>
+                <h5 class="card-title">Dashboard</h5>
+                <p class="card-text">Painel executivo com KPIs e gráficos</p>
+                <a href="{% url 'dashboard_financeiro' %}" class="btn btn-primary">
+                    <i class="bi bi-speedometer2"></i> Ver Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-gear fs-1 text-secondary mb-3"></i>
+                <h5 class="card-title">Administração</h5>
+                <p class="card-text">Acesse o painel administrativo</p>
+                <a href="/admin/" target="_blank" class="btn btn-secondary">
+                    <i class="bi bi-gear"></i> Admin
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Produtos Recentes -->
+{% if produtos_recentes %}
+<div class="row">
+    <div class="col-12">
+        <h3><i class="bi bi-clock-history"></i> Produtos Recentes</h3>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Categoria</th>
+                                <th>Custo Base</th>
+                                <th>Criado em</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for produto in produtos_recentes %}
+                            <tr>
+                                <td>
+                                    <strong>{{ produto.nome }}</strong>
+                                    {% if produto.descricao %}
+                                        <br><small class="text-muted">{{ produto.descricao|truncatechars:50 }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ produto.categoria.nome }}</span>
+                                </td>
+                                <td>
+                                    <strong class="text-success">R$ {{ produto.custo_base|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ produto.criado_em|date:"d/m/Y H:i" }}</small>
+                                </td>
+                                <td>
+                                    <a href="{% url 'produto_detalhe' produto.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'produto_editar' produto.pk %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'produto_lista' %}" class="btn btn-primary">
+                        <i class="bi bi-list"></i> Ver Todos os Produtos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            <strong>Nenhum produto cadastrado ainda.</strong>
+            <a href="{% url 'produto_criar' %}" class="alert-link">Clique aqui para criar seu primeiro produto</a>.
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+
+<!-- Vendas Recentes -->
+{% if vendas_recentes %}
+<div class="row mt-5">
+    <div class="col-12">
+        <h3><i class="bi bi-cart-check"></i> Vendas Recentes</h3>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Produto</th>
+                                <th>Quantidade</th>
+                                <th>Total</th>
+                                <th>Lucro</th>
+                                <th>Data</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venda in vendas_recentes %}
+                            <tr>
+                                <td>
+                                    <strong>#{{ venda.pk }}</strong>
+                                </td>
+                                <td>
+                                    <strong>{{ venda.produto.nome }}</strong>
+                                    <br><small class="text-muted">{{ venda.produto.categoria.nome }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ venda.quantidade }}</span>
+                                </td>
+                                <td>
+                                    <strong class="text-success">R$ {{ venda.total|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    <strong class="text-primary">R$ {{ venda.lucro_total|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ venda.data_venda|date:"d/m/Y H:i" }}</small>
+                                </td>
+                                <td>
+                                    <a href="{% url 'venda_detalhe' venda.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'venda_editar' venda.pk %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'venda_lista' %}" class="btn btn-info">
+                        <i class="bi bi-cart-check"></i> Ver Todas as Vendas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
+<!-- Despesas Recentes -->
+{% if despesas_recentes %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-receipt"></i> Despesas Recentes
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th>Data</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for despesa in despesas_recentes %}
+                            <tr>
+                                <td>
+                                    <strong>{{ despesa.descricao }}</strong>
+                                    {% if despesa.recorrente %}
+                                        <br><small class="text-info"><i class="bi bi-arrow-repeat"></i> Recorrente</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ despesa.categoria_display }}</span>
+                                </td>
+                                <td>
+                                    <strong class="text-warning">{{ despesa.valor_formatado }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ despesa.status_pagamento_class }}">
+                                        {{ despesa.status_pagamento }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ despesa.data_despesa|date:"d/m/Y" }}</small>
+                                </td>
+                                <td>
+                                    <a href="{% url 'despesa_detalhe' despesa.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'despesa_editar' despesa.pk %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'despesa_lista' %}" class="btn btn-warning">
+                        <i class="bi bi-receipt"></i> Ver Todas as Despesas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ despesa.descricao }} - Controle Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'despesa_lista' %}">Despesas</a></li>
+                <li class="breadcrumb-item active">{{ despesa.descricao|truncatechars:30 }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-receipt"></i> {{ despesa.descricao }}
+                    </h4>
+                    <span class="badge bg-{{ despesa.status_pagamento_class }} fs-6">
+                        {{ despesa.status_pagamento }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Informações Básicas</h6>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Categoria:</strong></td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ despesa.categoria_display }}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Valor:</strong></td>
+                                <td>
+                                    <span class="fs-5 text-warning">{{ despesa.valor_formatado }}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Data da Despesa:</strong></td>
+                                <td>{{ despesa.data_despesa|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            {% if despesa.data_vencimento %}
+                            <tr>
+                                <td><strong>Vencimento:</strong></td>
+                                <td>
+                                    {{ despesa.data_vencimento|date:"d/m/Y" }}
+                                    {% if despesa.status_pagamento == "Vencido" %}
+                                        <i class="bi bi-exclamation-triangle text-danger" title="Vencida"></i>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Status e Configurações</h6>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    <span class="badge bg-{{ despesa.status_pagamento_class }}">
+                                        {{ despesa.status_pagamento }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% if despesa.pago and despesa.data_pagamento %}
+                            <tr>
+                                <td><strong>Data do Pagamento:</strong></td>
+                                <td>{{ despesa.data_pagamento|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td><strong>Recorrente:</strong></td>
+                                <td>
+                                    {% if despesa.recorrente %}
+                                        <i class="bi bi-check-circle text-success"></i> Sim
+                                    {% else %}
+                                        <i class="bi bi-x-circle text-muted"></i> Não
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Criado em:</strong></td>
+                                <td>{{ despesa.criado_em|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                {% if despesa.observacoes %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6 class="text-muted">Observações</h6>
+                        <div class="alert alert-light">
+                            {{ despesa.observacoes|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar com Ações -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-gear"></i> Ações
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if not despesa.pago %}
+                        <button type="button" 
+                                class="btn btn-success" 
+                                id="marcarPagoBtn"
+                                data-despesa-id="{{ despesa.pk }}"
+                                data-despesa-nome="{{ despesa.descricao }}">
+                            <i class="bi bi-check-circle"></i> Marcar como Pago
+                        </button>
+                    {% endif %}
+                    
+                    <a href="{% url 'despesa_editar' despesa.pk %}" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Editar Despesa
+                    </a>
+                    
+                    <a href="{% url 'despesa_excluir' despesa.pk %}" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Excluir Despesa
+                    </a>
+                    
+                    <hr>
+                    
+                    <a href="{% url 'despesa_lista' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar à Lista
+                    </a>
+                    
+                    <a href="{% url 'despesa_criar' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus"></i> Nova Despesa
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de Análise -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i> Análise
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if despesa.data_vencimento %}
+                    {% if despesa.pago %}
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle"></i>
+                            <strong>Despesa Paga</strong><br>
+                            Pagamento realizado em {{ despesa.data_pagamento|date:"d/m/Y" }}
+                        </div>
+                    {% elif despesa.status_pagamento == "Vencido" %}
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Despesa Vencida</strong><br>
+                            Venceu em {{ despesa.data_vencimento|date:"d/m/Y" }}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-clock"></i>
+                            <strong>Despesa Pendente</strong><br>
+                            Vence em {{ despesa.data_vencimento|date:"d/m/Y" }}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    {% if despesa.pago %}
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle"></i>
+                            <strong>Despesa Paga</strong><br>
+                            Sem data de vencimento
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Despesa Pendente</strong><br>
+                            Sem data de vencimento definida
+                        </div>
+                    {% endif %}
+                {% endif %}
+
+                {% if despesa.recorrente %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-arrow-repeat"></i>
+                        <strong>Despesa Recorrente</strong><br>
+                        Esta despesa se repete mensalmente
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const marcarPagoBtn = document.getElementById('marcarPagoBtn');
+    
+    if (marcarPagoBtn) {
+        marcarPagoBtn.addEventListener('click', function() {
+            const despesaId = this.dataset.despesaId;
+            const despesaNome = this.dataset.despesaNome;
+            
+            if (confirm(`Confirma o pagamento da despesa "${despesaNome}"?`)) {
+                // Desabilitar botão durante a requisição
+                this.disabled = true;
+                this.innerHTML = '<i class="bi bi-hourglass-split"></i> Processando...';
+                
+                fetch(`/despesas/${despesaId}/marcar-pago/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Recarregar a página para atualizar os dados
+                        location.reload();
+                    } else {
+                        alert('Erro: ' + data.error);
+                        // Reabilitar botão em caso de erro
+                        this.disabled = false;
+                        this.innerHTML = '<i class="bi bi-check-circle"></i> Marcar como Pago';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao marcar despesa como paga');
+                    // Reabilitar botão em caso de erro
+                    this.disabled = false;
+                    this.innerHTML = '<i class="bi bi-check-circle"></i> Marcar como Pago';
+                });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+
+{% block title %}Relatório Detalhado - Controle Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'relatorios_receita_lucro' %}">Relatórios</a></li>
+                <li class="breadcrumb-item active">Relatório Detalhado</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="bi bi-file-earmark-text"></i> Relatório Detalhado</h1>
+            <a href="{% url 'relatorios_receita_lucro' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar aos Relatórios
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros Avançados -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-funnel"></i> Filtros Avançados</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="data_inicio" class="form-label">Data Início</label>
+                        <input type="date" class="form-control" id="data_inicio" name="data_inicio" 
+                               value="{{ data_inicio }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="data_fim" class="form-label">Data Fim</label>
+                        <input type="date" class="form-control" id="data_fim" name="data_fim" 
+                               value="{{ data_fim }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="categoria" class="form-label">Categoria</label>
+                        <select class="form-select" id="categoria" name="categoria">
+                            <option value="">Todas as categorias</option>
+                            {% for categoria in categorias %}
+                                <option value="{{ categoria.pk }}" 
+                                        {% if categoria.pk|stringformat:"s" == categoria_selecionada %}selected{% endif %}>
+                                    {{ categoria.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="produto" class="form-label">Produto</label>
+                        <select class="form-select" id="produto" name="produto">
+                            <option value="">Todos os produtos</option>
+                            {% for produto in produtos %}
+                                <option value="{{ produto.pk }}" 
+                                        {% if produto.pk|stringformat:"s" == produto_selecionado %}selected{% endif %}>
+                                    {{ produto.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Aplicar Filtros
+                        </button>
+                        <a href="{% url 'relatorio_detalhado' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x"></i> Limpar Filtros
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumo Executivo -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-cart-check fs-1 mb-2"></i>
+                <h6>Total de Vendas</h6>
+                <h3>{{ stats.total_vendas }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-currency-dollar fs-1 mb-2"></i>
+                <h6>Receita Total</h6>
+                <h3>R$ {{ stats.receita_total|floatformat:0 }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body text-center">
+                <i class="bi bi-calculator fs-1 mb-2"></i>
+                <h6>Custo Total</h6>
+                <h3>R$ {{ stats.custo_total|floatformat:0 }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up fs-1 mb-2"></i>
+                <h6>Lucro Total</h6>
+                <h3>R$ {{ stats.lucro_total|floatformat:0 }}</h3>
+                <small>Margem: {{ stats.margem_media|floatformat:1 }}%</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Análise por Produto -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-box"></i> Análise Detalhada por Produto</h5>
+            </div>
+            <div class="card-body">
+                {% if analise_produtos %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Categoria</th>
+                                <th>Vendas</th>
+                                <th>Qtd Total</th>
+                                <th>Receita</th>
+                                <th>Custo</th>
+                                <th>Lucro</th>
+                                <th>Margem</th>
+                                <th>Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for produto in analise_produtos %}
+                            <tr>
+                                <td>
+                                    <strong>{{ produto.produto__nome }}</strong>
+                                    <br><small class="text-muted">Custo base: R$ {{ produto.produto__custo_base|floatformat:2 }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ produto.produto__categoria__nome }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ produto.num_vendas }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ produto.total_vendido }}</strong>
+                                </td>
+                                <td>
+                                    <strong class="text-success">R$ {{ produto.receita|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    <span class="text-warning">R$ {{ produto.custo|floatformat:2 }}</span>
+                                </td>
+                                <td>
+                                    <strong class="text-primary">R$ {{ produto.lucro|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    {% if produto.custo > 0 %}
+                                        {% widthratio produto.lucro produto.custo 100 as margem_calc %}
+                                        <span class="badge 
+                                            {% if margem_calc > 30 %}bg-success
+                                            {% elif margem_calc > 10 %}bg-warning
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ margem_calc }}%
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if produto.custo > 0 %}
+                                        {% widthratio produto.lucro produto.custo 100 as margem_calc %}
+                                        {% if margem_calc > produto.produto__margem_lucro %}
+                                            <i class="bi bi-arrow-up-circle text-success" title="Acima do planejado"></i>
+                                        {% elif margem_calc >= produto.produto__margem_lucro|mul:0.8 %}
+                                            <i class="bi bi-dash-circle text-warning" title="Próximo do planejado"></i>
+                                        {% else %}
+                                            <i class="bi bi-arrow-down-circle text-danger" title="Abaixo do planejado"></i>
+                                        {% endif %}
+                                    {% else %}
+                                        <i class="bi bi-question-circle text-muted"></i>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted">
+                    <i class="bi bi-info-circle fs-1 mb-3"></i>
+                    <h4>Nenhum produto encontrado</h4>
+                    <p>Não foram encontradas vendas com os filtros aplicados.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Análise por Categoria -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-tags"></i> Análise por Categoria</h5>
+            </div>
+            <div class="card-body">
+                {% if analise_categorias %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Produtos</th>
+                                <th>Vendas</th>
+                                <th>Qtd Total</th>
+                                <th>Receita</th>
+                                <th>Custo</th>
+                                <th>Lucro</th>
+                                <th>Margem</th>
+                                <th>Participação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for categoria in analise_categorias %}
+                            <tr>
+                                <td>
+                                    <strong>{{ categoria.produto__categoria__nome }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ categoria.num_produtos }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ categoria.num_vendas }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ categoria.total_vendido }}</strong>
+                                </td>
+                                <td>
+                                    <strong class="text-success">R$ {{ categoria.receita|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    <span class="text-warning">R$ {{ categoria.custo|floatformat:2 }}</span>
+                                </td>
+                                <td>
+                                    <strong class="text-primary">R$ {{ categoria.lucro|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    {% if categoria.custo > 0 %}
+                                        {% widthratio categoria.lucro categoria.custo 100 as margem_cat %}
+                                        <span class="badge 
+                                            {% if margem_cat > 30 %}bg-success
+                                            {% elif margem_cat > 10 %}bg-warning
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ margem_cat }}%
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if stats.receita_total > 0 %}
+                                        {% widthratio categoria.receita stats.receita_total 100 as participacao %}
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" style="width: {{ participacao }}%">
+                                                {{ participacao }}%
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">0%</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted">
+                    <i class="bi bi-info-circle fs-1 mb-3"></i>
+                    <h4>Nenhuma categoria encontrada</h4>
+                    <p>Não foram encontradas vendas com os filtros aplicados.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

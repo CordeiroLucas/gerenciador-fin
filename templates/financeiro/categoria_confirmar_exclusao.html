@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir {{ categoria.nome }} - Controle Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'categoria_lista' %}">Categorias</a></li>
+                <li class="breadcrumb-item active">Excluir {{ categoria.nome }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mx-auto">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3 class="card-title mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> Confirmar Exclusão
+                </h3>
+            </div>
+            <div class="card-body">
+                {% if produtos_vinculados > 0 %}
+                    <!-- Categoria com produtos vinculados -->
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Não é possível excluir esta categoria!</strong>
+                    </div>
+                    
+                    <h5>Esta categoria não pode ser excluída</h5>
+                    <p>A categoria <strong>"{{ categoria.nome }}"</strong> possui <strong>{{ produtos_vinculados }} produto{{ produtos_vinculados|pluralize }}</strong> vinculado{{ produtos_vinculados|pluralize }}.</p>
+                    
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6><strong>{{ categoria.nome }}</strong></h6>
+                            {% if categoria.descricao %}
+                            <p class="mb-1"><strong>Descrição:</strong> {{ categoria.descricao }}</p>
+                            {% endif %}
+                            <p class="mb-0">
+                                <strong>Produtos vinculados:</strong> 
+                                <span class="badge bg-warning text-dark">{{ produtos_vinculados }} produto{{ produtos_vinculados|pluralize }}</span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h6>Para excluir esta categoria, você deve:</h6>
+                        <ol>
+                            <li>Mover os produtos para outras categorias, ou</li>
+                            <li>Excluir todos os produtos desta categoria primeiro</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'categoria_lista' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Voltar
+                        </a>
+                        <a href="{% url 'produto_lista' %}?categoria={{ categoria.pk }}" class="btn btn-primary">
+                            <i class="bi bi-list"></i> Ver Produtos desta Categoria
+                        </a>
+                    </div>
+                    
+                {% else %}
+                    <!-- Categoria sem produtos vinculados -->
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Atenção:</strong> Esta ação irá desativar a categoria, mas não a removerá permanentemente do sistema.
+                    </div>
+
+                    <h5>Você tem certeza que deseja excluir esta categoria?</h5>
+                    
+                    <!-- Informações da categoria -->
+                    <div class="card bg-light mt-3">
+                        <div class="card-body">
+                            <h6><strong>{{ categoria.nome }}</strong></h6>
+                            {% if categoria.descricao %}
+                            <p class="mb-1"><strong>Descrição:</strong> {{ categoria.descricao }}</p>
+                            {% endif %}
+                            <p class="mb-0">
+                                <strong>Produtos vinculados:</strong> 
+                                <span class="badge bg-success">Nenhum</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Informações sobre a exclusão -->
+                    <div class="mt-3">
+                        <h6>O que acontecerá:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check text-success"></i> A categoria será marcada como inativa</li>
+                            <li><i class="bi bi-check text-success"></i> Não aparecerá mais nas listagens principais</li>
+                            <li><i class="bi bi-check text-success"></i> Não estará disponível para novos produtos</li>
+                            <li><i class="bi bi-check text-success"></i> Pode ser reativada pelo administrador</li>
+                        </ul>
+                    </div>
+
+                    <!-- Formulário de confirmação -->
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'categoria_lista' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Confirmar Exclusão
+                            </button>
+                        </div>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

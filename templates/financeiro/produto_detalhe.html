@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ produto.nome }} - Controle Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'produto_lista' %}">Produtos</a></li>
+                <li class="breadcrumb-item active">{{ produto.nome }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">
+                    <i class="bi bi-box"></i> {{ produto.nome }}
+                </h3>
+                <div>
+                    {% if produto.ativo %}
+                        <span class="badge bg-success">Ativo</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inativo</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Informações Básicas -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5><i class="bi bi-info-circle"></i> Informações Básicas</h5>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Nome:</strong></td>
+                                <td>{{ produto.nome }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Categoria:</strong></td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ produto.categoria.nome }}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Custo Base:</strong></td>
+                                <td>
+                                    <span class="text-muted">R$ {{ produto.custo_base|floatformat:2 }}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Margem de Lucro:</strong></td>
+                                <td>
+                                    <span class="badge bg-info">{{ produto.margem_lucro }}%</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Preço Final:</strong></td>
+                                <td>
+                                    <strong class="text-success fs-4">R$ {{ produto.preco_final|floatformat:2 }}</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lucro por Unidade:</strong></td>
+                                <td>
+                                    <strong class="text-primary">R$ {{ produto.valor_lucro|floatformat:2 }}</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    {% if produto.ativo %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Ativo
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="bi bi-x-circle"></i> Inativo
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="bi bi-clock-history"></i> Histórico</h5>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Criado em:</strong></td>
+                                <td>{{ produto.criado_em|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Atualizado em:</strong></td>
+                                <td>{{ produto.atualizado_em|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Descrição -->
+                {% if produto.descricao %}
+                <div class="mb-4">
+                    <h5><i class="bi bi-text-paragraph"></i> Descrição</h5>
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <p class="mb-0">{{ produto.descricao|linebreaks }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Ações -->
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'produto_lista' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar à Lista
+                    </a>
+                    <div>
+                        <a href="{% url 'produto_editar' produto.pk %}" class="btn btn-primary">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        <a href="{% url 'produto_excluir' produto.pk %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Excluir
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar com informações adicionais -->
+    <div class="col-lg-4">
+        <!-- Categoria -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-tag"></i> Categoria
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6>{{ produto.categoria.nome }}</h6>
+                {% if produto.categoria.descricao %}
+                    <p class="text-muted mb-0">{{ produto.categoria.descricao }}</p>
+                {% endif %}
+                <div class="mt-2">
+                    <a href="{% url 'produto_lista' %}?categoria={{ produto.categoria.pk }}" 
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-list"></i> Ver outros produtos desta categoria
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estatísticas (placeholder para futuras implementações) -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i> Estatísticas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center text-muted">
+                    <i class="bi bi-clock fs-1 mb-2"></i>
+                    <p>Estatísticas de vendas serão exibidas aqui nas próximas etapas.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-lightning"></i> Ações Rápidas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'produto_criar' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus"></i> Novo Produto
+                    </a>
+                    <a href="{% url 'categoria_criar' %}" class="btn btn-outline-success">
+                        <i class="bi bi-plus"></i> Nova Categoria
+                    </a>
+                    <hr>
+                    <a href="{% url 'produto_lista' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-list"></i> Todos os Produtos
+                    </a>
+                    <a href="{% url 'categoria_lista' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-tags"></i> Todas as Categorias
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Venda #{{ venda.pk }} - Controle Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'venda_lista' %}">Vendas</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'venda_detalhe' venda.pk %}">Venda #{{ venda.pk }}</a></li>
+                <li class="breadcrumb-item active">Excluir</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> Confirmar Exclusão
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Atenção!</strong> Esta ação não pode ser desfeita. A venda será permanentemente removida do sistema.
+                </div>
+
+                <h5>Você tem certeza que deseja excluir esta venda?</h5>
+                
+                <!-- Detalhes da Venda -->
+                <div class="card bg-light mt-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="bi bi-receipt"></i> Detalhes da Venda</h6>
+                                <table class="table table-borderless table-sm">
+                                    <tr>
+                                        <td><strong>ID:</strong></td>
+                                        <td>#{{ venda.pk }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Produto:</strong></td>
+                                        <td>{{ venda.produto.nome }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Categoria:</strong></td>
+                                        <td>{{ venda.produto.categoria.nome }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Quantidade:</strong></td>
+                                        <td>{{ venda.quantidade }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="bi bi-calculator"></i> Valores</h6>
+                                <table class="table table-borderless table-sm">
+                                    <tr>
+                                        <td><strong>Valor Unitário:</strong></td>
+                                        <td>R$ {{ venda.valor_unitario|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Total:</strong></td>
+                                        <td><strong class="text-success">R$ {{ venda.total|floatformat:2 }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Lucro:</strong></td>
+                                        <td><strong class="text-primary">R$ {{ venda.lucro_total|floatformat:2 }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Data:</strong></td>
+                                        <td>{{ venda.data_venda|date:"d/m/Y H:i" }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        {% if venda.observacoes %}
+                        <hr>
+                        <h6><i class="bi bi-chat-text"></i> Observações</h6>
+                        <p class="text-muted">{{ venda.observacoes|truncatewords:20 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Formulário de Confirmação -->
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'venda_detalhe' venda.pk %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Sim, Excluir Venda
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

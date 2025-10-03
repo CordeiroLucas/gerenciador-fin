@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Categorias - Controle Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="bi bi-tags"></i> Categorias</h1>
+            <a href="{% url 'categoria_criar' %}" class="btn btn-success">
+                <i class="bi bi-plus"></i> Nova Categoria
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-8">
+                        <label for="busca" class="form-label">Buscar</label>
+                        <input type="text" class="form-control" id="busca" name="busca" 
+                               value="{{ busca }}" placeholder="Nome ou descrição da categoria">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-outline-primary me-2">
+                            <i class="bi bi-search"></i> Filtrar
+                        </button>
+                        <a href="{% url 'categoria_lista' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x"></i> Limpar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Categorias -->
+{% if page_obj %}
+<div class="row">
+    {% for categoria in page_obj %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title">
+                        <i class="bi bi-tag"></i> {{ categoria.nome }}
+                    </h5>
+                    <span class="badge bg-success">Ativa</span>
+                </div>
+                
+                {% if categoria.descricao %}
+                <p class="card-text text-muted">{{ categoria.descricao|truncatechars:100 }}</p>
+                {% else %}
+                <p class="card-text text-muted fst-italic">Sem descrição</p>
+                {% endif %}
+                
+                <!-- Estatísticas -->
+                <div class="row text-center mb-3">
+                    <div class="col">
+                        <div class="border rounded p-2">
+                            <div class="fs-4 fw-bold text-primary">{{ categoria.produtos.count }}</div>
+                            <small class="text-muted">Produto{{ categoria.produtos.count|pluralize }}</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Informações de data -->
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar"></i> Criada em {{ categoria.criado_em|date:"d/m/Y" }}
+                    </small>
+                </div>
+            </div>
+            
+            <div class="card-footer bg-transparent">
+                <div class="btn-group w-100" role="group">
+                    <a href="{% url 'categoria_editar' categoria.pk %}" 
+                       class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <a href="{% url 'produto_lista' %}?categoria={{ categoria.pk }}" 
+                       class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-list"></i> Produtos
+                    </a>
+                    <a href="{% url 'categoria_excluir' categoria.pk %}" 
+                       class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash"></i> Excluir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Paginação -->
+{% if page_obj.has_other_pages %}
+<nav aria-label="Paginação de categorias">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if busca %}&busca={{ busca }}{% endif %}">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if busca %}&busca={{ busca }}{% endif %}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if busca %}&busca={{ busca }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if busca %}&busca={{ busca }}{% endif %}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if busca %}&busca={{ busca }}{% endif %}">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+
+<div class="text-center text-muted">
+    <small>
+        Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} 
+        de {{ page_obj.paginator.count }} categoria(s)
+    </small>
+</div>
+{% endif %}
+
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle fs-1 mb-3"></i>
+            <h4>Nenhuma categoria encontrada</h4>
+            {% if busca %}
+                <p>Não foram encontradas categorias com os filtros aplicados.</p>
+                <a href="{% url 'categoria_lista' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-x"></i> Limpar Filtros
+                </a>
+            {% else %}
+                <p>Você ainda não cadastrou nenhuma categoria.</p>
+                <a href="{% url 'categoria_criar' %}" class="btn btn-success">
+                    <i class="bi bi-plus"></i> Criar Primeira Categoria
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+
+{% block title %}Vendas - Controle Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="bi bi-cart-check"></i> Vendas</h1>
+            <a href="{% url 'venda_criar' %}" class="btn btn-primary">
+                <i class="bi bi-plus"></i> Nova Venda
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Resumo de Totais -->
+{% if totais.total_vendas %}
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Receita Total</h6>
+                        <h4>R$ {{ totais.total_vendas|floatformat:2 }}</h4>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-currency-dollar fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Lucro Total</h6>
+                        <h4>R$ {{ totais.total_lucro|floatformat:2 }}</h4>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-graph-up fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Custo Total</h6>
+                        <h4>R$ {{ totais.total_custo|floatformat:2 }}</h4>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-calculator fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Margem Média</h6>
+                        <h4>
+                            {% if totais.total_custo > 0 %}
+                                {% widthratio totais.total_lucro totais.total_custo 100 %}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </h4>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-percent fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Filtros -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="busca" class="form-label">Buscar</label>
+                        <input type="text" class="form-control" id="busca" name="busca" 
+                               value="{{ busca }}" placeholder="Produto ou observações">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="produto" class="form-label">Produto</label>
+                        <select class="form-select" id="produto" name="produto">
+                            <option value="">Todos os produtos</option>
+                            {% for produto in produtos %}
+                                <option value="{{ produto.pk }}" 
+                                        {% if produto.pk|stringformat:"s" == produto_selecionado %}selected{% endif %}>
+                                    {{ produto.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="categoria" class="form-label">Categoria</label>
+                        <select class="form-select" id="categoria" name="categoria">
+                            <option value="">Todas as categorias</option>
+                            {% for categoria in categorias %}
+                                <option value="{{ categoria.pk }}" 
+                                        {% if categoria.pk|stringformat:"s" == categoria_selecionada %}selected{% endif %}>
+                                    {{ categoria.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="periodo" class="form-label">Período</label>
+                        <select class="form-select" id="periodo" name="periodo">
+                            <option value="">Todos os períodos</option>
+                            <option value="hoje" {% if periodo_selecionado == 'hoje' %}selected{% endif %}>Hoje</option>
+                            <option value="semana" {% if periodo_selecionado == 'semana' %}selected{% endif %}>Última semana</option>
+                            <option value="mes" {% if periodo_selecionado == 'mes' %}selected{% endif %}>Este mês</option>
+                            <option value="ano" {% if periodo_selecionado == 'ano' %}selected{% endif %}>Este ano</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-outline-primary me-2">
+                            <i class="bi bi-search"></i> Filtrar
+                        </button>
+                        <a href="{% url 'venda_lista' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x"></i> Limpar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Vendas -->
+{% if page_obj %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Produto</th>
+                                <th>Quantidade</th>
+                                <th>Valor Unit.</th>
+                                <th>Total</th>
+                                <th>Lucro</th>
+                                <th>Margem</th>
+                                <th>Data</th>
+                                <th width="120">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venda in page_obj %}
+                            <tr>
+                                <td>
+                                    <strong>#{{ venda.pk }}</strong>
+                                </td>
+                                <td>
+                                    <strong>{{ venda.produto.nome }}</strong>
+                                    <br><small class="text-muted">{{ venda.produto.categoria.nome }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ venda.quantidade }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted">R$ {{ venda.valor_unitario|floatformat:2 }}</span>
+                                </td>
+                                <td>
+                                    <strong class="text-success">R$ {{ venda.total|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    <strong class="text-primary">R$ {{ venda.lucro_total|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ venda.margem_realizada|floatformat:1 }}%</span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ venda.data_venda|date:"d/m/Y H:i" }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'venda_detalhe' venda.pk %}" 
+                                           class="btn btn-sm btn-outline-primary" title="Ver detalhes">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'venda_editar' venda.pk %}" 
+                                           class="btn btn-sm btn-outline-secondary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{% url 'venda_excluir' venda.pk %}" 
+                                           class="btn btn-sm btn-outline-danger" title="Excluir">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Paginação -->
+{% if page_obj.has_other_pages %}
+<nav aria-label="Paginação de vendas" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if busca %}&busca={{ busca }}{% endif %}{% if produto_selecionado %}&produto={{ produto_selecionado }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}{% if periodo_selecionado %}&periodo={{ periodo_selecionado }}{% endif %}">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if produto_selecionado %}&produto={{ produto_selecionado }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}{% if periodo_selecionado %}&periodo={{ periodo_selecionado }}{% endif %}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if busca %}&busca={{ busca }}{% endif %}{% if produto_selecionado %}&produto={{ produto_selecionado }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}{% if periodo_selecionado %}&periodo={{ periodo_selecionado }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if produto_selecionado %}&produto={{ produto_selecionado }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}{% if periodo_selecionado %}&periodo={{ periodo_selecionado }}{% endif %}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if busca %}&busca={{ busca }}{% endif %}{% if produto_selecionado %}&produto={{ produto_selecionado }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}{% if periodo_selecionado %}&periodo={{ periodo_selecionado }}{% endif %}">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle fs-1 mb-3"></i>
+            <h4>Nenhuma venda encontrada</h4>
+            {% if busca or produto_selecionado or categoria_selecionada or periodo_selecionado %}
+                <p>Não foram encontradas vendas com os filtros aplicados.</p>
+                <a href="{% url 'venda_lista' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-x"></i> Limpar Filtros
+                </a>
+            {% else %}
+                <p>Você ainda não registrou nenhuma venda.</p>
+                <a href="{% url 'venda_criar' %}" class="btn btn-primary">
+                    <i class="bi bi-plus"></i> Registrar Primeira Venda
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

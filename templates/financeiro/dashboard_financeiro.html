@@ -1,0 +1,465 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Financeiro - Controle Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="bi bi-speedometer2"></i> Dashboard Financeiro</h1>
+            
+            <!-- Filtro de Período -->
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-calendar"></i> {{ titulo_periodo }}
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="?periodo=30_dias">Últimos 30 dias</a></li>
+                    <li><a class="dropdown-item" href="?periodo=90_dias">Últimos 90 dias</a></li>
+                    <li><a class="dropdown-item" href="?periodo=6_meses">Últimos 6 meses</a></li>
+                    <li><a class="dropdown-item" href="?periodo=12_meses">Últimos 12 meses</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alertas -->
+{% if alertas %}
+<div class="row mb-4">
+    <div class="col-12">
+        {% for alerta in alertas %}
+        <div class="alert alert-{{ alerta.tipo }} alert-dismissible fade show" role="alert">
+            <strong><i class="bi bi-exclamation-triangle"></i> {{ alerta.titulo }}:</strong> 
+            {{ alerta.mensagem }}
+            {% if alerta.link %}
+                <a href="{{ alerta.link }}" class="alert-link">Ver detalhes</a>
+            {% endif %}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- KPIs Principais -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Receita Total</h6>
+                        <h3 class="mb-0">R$ {{ kpis.receita_total|floatformat:0 }}</h3>
+                        <small>{{ kpis.total_vendas }} vendas</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-currency-dollar fs-1"></i>
+                    </div>
+                </div>
+                {% if tendencias.receita_crescimento != 0 %}
+                <div class="mt-2">
+                    <small>
+                        {% if tendencias.receita_crescimento > 0 %}
+                            <i class="bi bi-arrow-up text-success"></i> +{{ tendencias.receita_crescimento|floatformat:1 }}%
+                        {% else %}
+                            <i class="bi bi-arrow-down text-danger"></i> {{ tendencias.receita_crescimento|floatformat:1 }}%
+                        {% endif %}
+                        vs período anterior
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Lucro Líquido</h6>
+                        <h3 class="mb-0">R$ {{ kpis.lucro_liquido|floatformat:0 }}</h3>
+                        <small>Margem: {{ kpis.margem_media|floatformat:1 }}%</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-graph-up fs-1"></i>
+                    </div>
+                </div>
+                {% if tendencias.lucro_crescimento != 0 %}
+                <div class="mt-2">
+                    <small>
+                        {% if tendencias.lucro_crescimento > 0 %}
+                            <i class="bi bi-arrow-up text-success"></i> +{{ tendencias.lucro_crescimento|floatformat:1 }}%
+                        {% else %}
+                            <i class="bi bi-arrow-down text-danger"></i> {{ tendencias.lucro_crescimento|floatformat:1 }}%
+                        {% endif %}
+                        vs período anterior
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-warning text-dark h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Despesas Pagas</h6>
+                        <h3 class="mb-0">R$ {{ kpis.despesas_pagas|floatformat:0 }}</h3>
+                        <small>Total: R$ {{ kpis.despesas_total|floatformat:0 }}</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-receipt fs-1"></i>
+                    </div>
+                </div>
+                {% if tendencias.despesas_crescimento != 0 %}
+                <div class="mt-2">
+                    <small>
+                        {% if tendencias.despesas_crescimento > 0 %}
+                            <i class="bi bi-arrow-up text-danger"></i> +{{ tendencias.despesas_crescimento|floatformat:1 }}%
+                        {% else %}
+                            <i class="bi bi-arrow-down text-success"></i> {{ tendencias.despesas_crescimento|floatformat:1 }}%
+                        {% endif %}
+                        vs período anterior
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Ticket Médio</h6>
+                        <h3 class="mb-0">R$ {{ kpis.ticket_medio|floatformat:0 }}</h3>
+                        <small>Por venda</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-calculator fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos Principais -->
+<div class="row mb-4">
+    <!-- Evolução Mensal -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i> Evolução Financeira (12 meses)
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="evolucaoChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Despesas por Categoria -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-pie-chart"></i> Despesas por Categoria
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="despesasChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fluxo de Caixa e Top Produtos -->
+<div class="row mb-4">
+    <!-- Fluxo de Caixa Diário -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-bar-chart"></i> Fluxo de Caixa Diário (30 dias)
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="fluxoCaixaChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Produtos -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-trophy"></i> Top Produtos por Receita
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if top_produtos %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <tbody>
+                            {% for produto in top_produtos %}
+                            <tr>
+                                <td>
+                                    <strong>{{ produto.produto__nome|truncatechars:20 }}</strong>
+                                    <br><small class="text-muted">{{ produto.produto__categoria__nome }}</small>
+                                </td>
+                                <td class="text-end">
+                                    <strong class="text-success">R$ {{ produto.receita|floatformat:0 }}</strong>
+                                    <br><small class="text-muted">{{ produto.quantidade }} un.</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted">
+                    <i class="bi bi-info-circle fs-1 mb-2"></i>
+                    <p>Nenhuma venda no período</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ações Rápidas -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-lightning"></i> Ações Rápidas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2">
+                        <a href="{% url 'venda_criar' %}" class="btn btn-primary w-100 mb-2">
+                            <i class="bi bi-plus-circle"></i><br>Nova Venda
+                        </a>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="{% url 'despesa_criar' %}" class="btn btn-warning w-100 mb-2">
+                            <i class="bi bi-receipt"></i><br>Nova Despesa
+                        </a>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="{% url 'produto_criar' %}" class="btn btn-success w-100 mb-2">
+                            <i class="bi bi-box"></i><br>Novo Produto
+                        </a>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="{% url 'relatorios_receita_lucro' %}" class="btn btn-info w-100 mb-2">
+                            <i class="bi bi-graph-up"></i><br>Relatórios
+                        </a>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="{% url 'despesa_lista' %}?status=vencido" class="btn btn-danger w-100 mb-2">
+                            <i class="bi bi-exclamation-triangle"></i><br>Vencidas
+                        </a>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="{% url 'simulador_precificacao' %}" class="btn btn-secondary w-100 mb-2">
+                            <i class="bi bi-calculator"></i><br>Precificar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Dados dos gráficos
+    const evolucaoData = {{ evolucao_mensal|safe }};
+    const fluxoCaixaData = {{ fluxo_caixa|safe }};
+    const despesasData = {{ despesas_categoria_json|safe }};
+    
+    // Configurações globais do Chart.js
+    Chart.defaults.font.family = 'system-ui, -apple-system, sans-serif';
+    Chart.defaults.color = '#6c757d';
+    
+    // Gráfico de Evolução Mensal
+    const evolucaoCtx = document.getElementById('evolucaoChart').getContext('2d');
+    new Chart(evolucaoCtx, {
+        type: 'line',
+        data: {
+            labels: evolucaoData.map(item => item.mes),
+            datasets: [
+                {
+                    label: 'Receita',
+                    data: evolucaoData.map(item => item.receita),
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Lucro Líquido',
+                    data: evolucaoData.map(item => item.lucro_liquido),
+                    borderColor: '#198754',
+                    backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Despesas',
+                    data: evolucaoData.map(item => item.despesas),
+                    borderColor: '#ffc107',
+                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': R$ ' + 
+                                   context.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits: 0});
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'R$ ' + value.toLocaleString('pt-BR', {minimumFractionDigits: 0});
+                        }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+    
+    // Gráfico de Fluxo de Caixa
+    const fluxoCtx = document.getElementById('fluxoCaixaChart').getContext('2d');
+    new Chart(fluxoCtx, {
+        type: 'bar',
+        data: {
+            labels: fluxoCaixaData.map(item => item.data),
+            datasets: [
+                {
+                    label: 'Receita',
+                    data: fluxoCaixaData.map(item => item.receita),
+                    backgroundColor: 'rgba(13, 110, 253, 0.8)',
+                    borderColor: '#0d6efd',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Despesas',
+                    data: fluxoCaixaData.map(item => -item.despesas),
+                    backgroundColor: 'rgba(255, 193, 7, 0.8)',
+                    borderColor: '#ffc107',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = Math.abs(context.parsed.y);
+                            return context.dataset.label + ': R$ ' + 
+                                   value.toLocaleString('pt-BR', {minimumFractionDigits: 0});
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: function(value) {
+                            return 'R$ ' + Math.abs(value).toLocaleString('pt-BR', {minimumFractionDigits: 0});
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Gráfico de Despesas por Categoria
+    if (despesasData.length > 0) {
+        const despesasCtx = document.getElementById('despesasChart').getContext('2d');
+        new Chart(despesasCtx, {
+            type: 'doughnut',
+            data: {
+                labels: despesasData.map(item => item.categoria),
+                datasets: [{
+                    data: despesasData.map(item => item.total),
+                    backgroundColor: [
+                        '#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1',
+                        '#fd7e14', '#20c997', '#6c757d', '#e83e8c'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return context.label + ': R$ ' + 
+                                       context.parsed.toLocaleString('pt-BR', {minimumFractionDigits: 0}) +
+                                       ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+
+{% block title %}Simulador de Precificação - Controle Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="bi bi-calculator"></i> Simulador de Precificação</h1>
+            <a href="{% url 'produto_criar' %}" class="btn btn-primary">
+                <i class="bi bi-plus"></i> Novo Produto
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Informações sobre o simulador -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            <strong>Como usar:</strong> Selecione um produto e teste diferentes margens de lucro para ver como isso afeta o preço final e o lucro por unidade.
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-6">
+                        <label for="busca" class="form-label">Buscar Produto</label>
+                        <input type="text" class="form-control" id="busca" name="busca" 
+                               value="{{ busca }}" placeholder="Nome ou descrição do produto">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="categoria" class="form-label">Categoria</label>
+                        <select class="form-select" id="categoria" name="categoria">
+                            <option value="">Todas as categorias</option>
+                            {% for categoria in categorias %}
+                                <option value="{{ categoria.pk }}" 
+                                        {% if categoria.pk|stringformat:"s" == categoria_selecionada %}selected{% endif %}>
+                                    {{ categoria.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-outline-primary me-2">
+                            <i class="bi bi-search"></i> Filtrar
+                        </button>
+                        <a href="{% url 'simulador_precificacao' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x"></i> Limpar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Produtos para Simulação -->
+{% if page_obj %}
+<div class="row">
+    {% for produto in page_obj %}
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-box"></i> {{ produto.nome }}
+                    </h5>
+                    <span class="badge bg-secondary">{{ produto.categoria.nome }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Informações atuais -->
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">Custo Base</small>
+                        <div class="fs-6 fw-bold">R$ {{ produto.custo_base|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Margem Atual</small>
+                        <div class="fs-6 fw-bold text-info">{{ produto.margem_lucro }}%</div>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">Preço Atual</small>
+                        <div class="fs-5 fw-bold text-success">R$ {{ produto.preco_final|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Lucro Atual</small>
+                        <div class="fs-6 fw-bold text-primary">R$ {{ produto.valor_lucro|floatformat:2 }}</div>
+                    </div>
+                </div>
+
+                <!-- Simulador -->
+                <hr>
+                <div class="simulador-container" data-produto-id="{{ produto.pk }}" data-custo-base="{{ produto.custo_base }}">
+                    <h6><i class="bi bi-calculator"></i> Simular Nova Margem</h6>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Nova Margem de Lucro (%)</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control margem-input" 
+                                   step="0.01" min="0" max="999.99" 
+                                   value="{{ produto.margem_lucro }}" 
+                                   placeholder="30.00">
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Resultados da simulação -->
+                    <div class="simulacao-resultado">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted">Novo Preço</small>
+                                <div class="fs-5 fw-bold text-success novo-preco">
+                                    R$ {{ produto.preco_final|floatformat:2 }}
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Novo Lucro</small>
+                                <div class="fs-6 fw-bold text-primary novo-lucro">
+                                    R$ {{ produto.valor_lucro|floatformat:2 }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Comparação -->
+                        <div class="mt-2">
+                            <small class="diferenca-texto text-muted"></small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ações -->
+                <div class="mt-3">
+                    <div class="btn-group w-100" role="group">
+                        <a href="{% url 'produto_detalhe' produto.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-eye"></i> Ver
+                        </a>
+                        <a href="{% url 'produto_editar' produto.pk %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        <button type="button" class="btn btn-success btn-sm aplicar-margem" 
+                                data-produto-id="{{ produto.pk }}">
+                            <i class="bi bi-check"></i> Aplicar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Paginação -->
+{% if page_obj.has_other_pages %}
+<nav aria-label="Paginação de produtos">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if busca %}&busca={{ busca }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if busca %}&busca={{ busca }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if busca %}&busca={{ busca }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle fs-1 mb-3"></i>
+            <h4>Nenhum produto encontrado</h4>
+            {% if busca or categoria_selecionada %}
+                <p>Não foram encontrados produtos com os filtros aplicados.</p>
+                <a href="{% url 'simulador_precificacao' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-x"></i> Limpar Filtros
+                </a>
+            {% else %}
+                <p>Você ainda não cadastrou nenhum produto.</p>
+                <a href="{% url 'produto_criar' %}" class="btn btn-primary">
+                    <i class="bi bi-plus"></i> Criar Primeiro Produto
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Função para formatar valor em reais
+    function formatarReal(valor) {
+        return valor.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+    
+    // Função para calcular simulação
+    function calcularSimulacao(container) {
+        const custoBase = parseFloat(container.dataset.custoBase);
+        const margemInput = container.querySelector('.margem-input');
+        const novaMargem = parseFloat(margemInput.value) || 0;
+        
+        const novoPreco = custoBase * (1 + novaMargem / 100);
+        const novoLucro = novoPreco - custoBase;
+        
+        // Atualizar displays
+        container.querySelector('.novo-preco').textContent = `R$ ${formatarReal(novoPreco)}`;
+        container.querySelector('.novo-lucro').textContent = `R$ ${formatarReal(novoLucro)}`;
+        
+        // Calcular diferença percentual
+        const precoAtual = custoBase * (1 + parseFloat(container.querySelector('.margem-input').dataset.margemAtual || 30) / 100);
+        const diferenca = ((novoPreco - precoAtual) / precoAtual) * 100;
+        
+        let diferencaTexto = '';
+        if (Math.abs(diferenca) > 0.01) {
+            if (diferenca > 0) {
+                diferencaTexto = `<i class="bi bi-arrow-up text-success"></i> ${diferenca.toFixed(1)}% maior que o preço atual`;
+            } else {
+                diferencaTexto = `<i class="bi bi-arrow-down text-danger"></i> ${Math.abs(diferenca).toFixed(1)}% menor que o preço atual`;
+            }
+        } else {
+            diferencaTexto = '<i class="bi bi-dash text-muted"></i> Mesmo preço atual';
+        }
+        
+        container.querySelector('.diferenca-texto').innerHTML = diferencaTexto;
+    }
+    
+    // Event listeners para inputs de margem
+    document.querySelectorAll('.margem-input').forEach(input => {
+        const container = input.closest('.simulador-container');
+        
+        // Armazenar margem atual
+        input.dataset.margemAtual = input.value;
+        
+        input.addEventListener('input', function() {
+            calcularSimulacao(container);
+        });
+        
+        // Calcular inicial
+        calcularSimulacao(container);
+    });
+    
+    // Event listeners para botões "Aplicar"
+    document.querySelectorAll('.aplicar-margem').forEach(button => {
+        button.addEventListener('click', function() {
+            const produtoId = this.dataset.produtoId;
+            const container = document.querySelector(`[data-produto-id="${produtoId}"]`);
+            const novaMargem = container.querySelector('.margem-input').value;
+            
+            if (confirm(`Deseja aplicar a margem de ${novaMargem}% a este produto?`)) {
+                // Redirecionar para edição com a nova margem
+                const editUrl = `/produtos/${produtoId}/editar/`;
+                window.location.href = `${editUrl}?margem=${novaMargem}`;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

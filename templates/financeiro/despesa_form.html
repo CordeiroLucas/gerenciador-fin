@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} - Controle Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'despesa_lista' %}">Despesas</a></li>
+                <li class="breadcrumb-item active">{{ titulo }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-receipt"></i> {{ titulo }}
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Descrição -->
+                    <div class="mb-3">
+                        <label for="{{ form.descricao.id_for_label }}" class="form-label">
+                            {{ form.descricao.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.descricao }}
+                        {% if form.descricao.help_text %}
+                            <div class="form-text">{{ form.descricao.help_text }}</div>
+                        {% endif %}
+                        {% if form.descricao.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.descricao.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <!-- Categoria -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.categoria.id_for_label }}" class="form-label">
+                                    {{ form.categoria.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.categoria }}
+                                {% if form.categoria.help_text %}
+                                    <div class="form-text">{{ form.categoria.help_text }}</div>
+                                {% endif %}
+                                {% if form.categoria.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.categoria.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Valor -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.valor.id_for_label }}" class="form-label">
+                                    {{ form.valor.label }} <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    {{ form.valor }}
+                                </div>
+                                {% if form.valor.help_text %}
+                                    <div class="form-text">{{ form.valor.help_text }}</div>
+                                {% endif %}
+                                {% if form.valor.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.valor.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Data de Vencimento -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.data_vencimento.id_for_label }}" class="form-label">
+                                    {{ form.data_vencimento.label }}
+                                </label>
+                                {{ form.data_vencimento }}
+                                {% if form.data_vencimento.help_text %}
+                                    <div class="form-text">{{ form.data_vencimento.help_text }}</div>
+                                {% endif %}
+                                {% if form.data_vencimento.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.data_vencimento.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Checkboxes -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Configurações</label>
+                                
+                                <div class="form-check">
+                                    {{ form.pago }}
+                                    <label class="form-check-label" for="{{ form.pago.id_for_label }}">
+                                        {{ form.pago.label }}
+                                    </label>
+                                    {% if form.pago.help_text %}
+                                        <div class="form-text">{{ form.pago.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-check">
+                                    {{ form.recorrente }}
+                                    <label class="form-check-label" for="{{ form.recorrente.id_for_label }}">
+                                        {{ form.recorrente.label }}
+                                    </label>
+                                    {% if form.recorrente.help_text %}
+                                        <div class="form-text">{{ form.recorrente.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if form.pago.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.pago.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.recorrente.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.recorrente.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observações -->
+                    <div class="mb-3">
+                        <label for="{{ form.observacoes.id_for_label }}" class="form-label">
+                            {{ form.observacoes.label }}
+                        </label>
+                        {{ form.observacoes }}
+                        {% if form.observacoes.help_text %}
+                            <div class="form-text">{{ form.
+
+observacoes.help_text }}</div>
+                        {% endif %}
+                        {% if form.observacoes.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.observacoes.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'despesa_lista' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Voltar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check"></i> {{ botao }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Formatação do campo valor
+    const valorInput = document.getElementById('id_valor');
+    if (valorInput) {
+        valorInput.addEventListener('input', function() {
+            let value = this.value.replace(/[^\d.,]/g, '');
+            value = value.replace(',', '.');
+            this.value = value;
+        });
+    }
+
+    // Lógica para checkbox "pago"
+    const pagoCheckbox = document.getElementById('id_pago');
+    const vencimentoInput = document.getElementById('id_data_vencimento');
+    
+    if (pagoCheckbox && vencimentoInput) {
+        pagoCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                // Se marcou como pago, limpar data de vencimento
+                vencimentoInput.value = '';
+                vencimentoInput.disabled = true;
+            } else {
+                vencimentoInput.disabled = false;
+            }
+        });
+        
+        // Verificar estado inicial
+        if (pagoCheckbox.checked) {
+            vencimentoInput.disabled = true;
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir {{ produto.nome }} - Controle Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'produto_lista' %}">Produtos</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'produto_detalhe' produto.pk %}">{{ produto.nome }}</a></li>
+                <li class="breadcrumb-item active">Excluir</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mx-auto">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3 class="card-title mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> Confirmar Exclusão
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Atenção:</strong> Esta ação irá desativar o produto, mas não o removerá permanentemente do sistema.
+                </div>
+
+                <h5>Você tem certeza que deseja excluir este produto?</h5>
+                
+                <!-- Informações do produto -->
+                <div class="card bg-light mt-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <h6><strong>{{ produto.nome }}</strong></h6>
+                                <p class="mb-1">
+                                    <strong>Categoria:</strong> 
+                                    <span class="badge bg-secondary">{{ produto.categoria.nome }}</span>
+                                </p>
+                                <p class="mb-1">
+                                    <strong>Custo Base:</strong> 
+                                    <span class="text-success">R$ {{ produto.custo_base|floatformat:2 }}</span>
+                                </p>
+                                {% if produto.descricao %}
+                                <p class="mb-0">
+                                    <strong>Descrição:</strong> {{ produto.descricao|truncatechars:100 }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informações sobre a exclusão -->
+                <div class="mt-3">
+                    <h6>O que acontecerá:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check text-success"></i> O produto será marcado como inativo</li>
+                        <li><i class="bi bi-check text-success"></i> Não aparecerá mais nas listagens principais</li>
+                        <li><i class="bi bi-check text-success"></i> Histórico de vendas será preservado</li>
+                        <li><i class="bi bi-check text-success"></i> Pode ser reativado pelo administrador</li>
+                    </ul>
+                </div>
+
+                <!-- Formulário de confirmação -->
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'produto_detalhe' produto.pk %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Confirmar Exclusão
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

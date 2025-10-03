@@ -1,0 +1,333 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} - Controle Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'venda_lista' %}">Vendas</a></li>
+                <li class="breadcrumb-item active">{{ titulo }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-cart-plus"></i> {{ titulo }}
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Produto -->
+                    <div class="mb-3">
+                        <label for="{{ form.produto.id_for_label }}" class="form-label">
+                            {{ form.produto.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.produto }}
+                        {% if form.produto.help_text %}
+                            <div class="form-text">{{ form.produto.help_text }}</div>
+                        {% endif %}
+                        {% if form.produto.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.produto.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Informações do Produto Selecionado -->
+                    <div id="produto-info" class="mb-3" style="display: none;">
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle"></i> Informações do Produto</h6>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <small class="text-muted">Categoria</small>
+                                    <div id="produto-categoria">-</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Custo Base</small>
+                                    <div id="produto-custo">R$ 0,00</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Margem</small>
+                                    <div id="produto-margem">0%</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Preço Sugerido</small>
+                                    <div id="produto-preco" class="fw-bold text-success">R$ 0,00</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Quantidade -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.quantidade.id_for_label }}" class="form-label">
+                                    {{ form.quantidade.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.quantidade }}
+                                {% if form.quantidade.help_text %}
+                                    <div class="form-text">{{ form.quantidade.help_text }}</div>
+                                {% endif %}
+                                {% if form.quantidade.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.quantidade.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Valor Unitário -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.valor_unitario.id_for_label }}" class="form-label">
+                                    {{ form.valor_unitario.label }} <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    {{ form.valor_unitario }}
+                                    <button type="button" class="btn btn-outline-secondary" id="usar-preco-sugerido" title="Usar preço sugerido">
+                                        <i class="bi bi-arrow-down"></i>
+                                    </button>
+                                </div>
+                                {% if form.valor_unitario.help_text %}
+                                    <div class="form-text">{{ form.valor_unitario.help_text }}</div>
+                                {% endif %}
+                                {% if form.valor_unitario.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.valor_unitario.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cálculos da Venda -->
+                    <div class="mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6><i class="bi bi-calculator"></i> Cálculos da Venda</h6>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <small class="text-muted">Total da Venda</small>
+                                        <div class="fs-5 fw-bold text-success" id="total-venda">R$ 0,00</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small class="text-muted">Custo Total</small>
+                                        <div class="fw-bold text-warning" id="custo-total">R$ 0,00</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small class="text-muted">Lucro Total</small>
+                                        <div class="fw-bold text-primary" id="lucro-total">R$ 0,00</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small class="text-muted">Margem Realizada</small>
+                                        <div class="fw-bold text-info" id="margem-realizada">0%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observações -->
+                    <div class="mb-3">
+                        <label for="{{ form.observacoes.id_for_label }}" class="form-label">
+                            {{ form.observacoes.label }}
+                        </label>
+                        {{ form.observacoes }}
+                        {% if form.observacoes.help_text %}
+                            <div class="form-text">{{ form.observacoes.help_text }}</div>
+                        {% endif %}
+                        {% if form.observacoes.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.observacoes.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'venda_lista' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Voltar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check"></i> {{ botao }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elementos do formulário
+    const produtoSelect = document.getElementById('{{ form.produto.id_for_label }}');
+    const quantidadeInput = document.getElementById('{{ form.quantidade.id_for_label }}');
+    const valorUnitarioInput = document.getElementById('{{ form.valor_unitario.id_for_label }}');
+    const usarPrecoSugeridoBtn = document.getElementById('usar-preco-sugerido');
+    
+    // Elementos de informação
+    const produtoInfo = document.getElementById('produto-info');
+    const produtoCategoria = document.getElementById('produto-categoria');
+    const produtoCusto = document.getElementById('produto-custo');
+    const produtoMargem = document.getElementById('produto-margem');
+    const produtoPreco = document.getElementById('produto-preco');
+    
+    // Elementos de cálculo
+    const totalVenda = document.getElementById('total-venda');
+    const custoTotal = document.getElementById('custo-total');
+    const lucroTotal = document.getElementById('lucro-total');
+    const margemRealizada = document.getElementById('margem-realizada');
+    
+    let produtoAtual = null;
+    
+    // Função para formatar valor em reais
+    function formatarReal(valor) {
+        return valor.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+    
+    // Função para carregar informações do produto
+    function carregarProduto(produtoId) {
+        if (!produtoId) {
+            produtoInfo.style.display = 'none';
+            produtoAtual = null;
+            calcularVenda();
+            return;
+        }
+        
+        fetch(`/api/preco-produto/?produto_id=${produtoId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    produtoAtual = data;
+                    
+                    // Atualizar informações do produto
+                    produtoCategoria.textContent = data.categoria;
+                    produtoCusto.textContent = `R$ ${formatarReal(data.custo_base)}`;
+                    produtoMargem.textContent = `${data.margem_lucro}%`;
+                    produtoPreco.textContent = `R$ ${formatarReal(data.preco_final)}`;
+                    
+                    // Mostrar informações
+                    produtoInfo.style.display = 'block';
+                    
+                    // Se não há valor unitário definido, usar o preço sugerido
+                    if (!valorUnitarioInput.value) {
+                        valorUnitarioInput.value = data.preco_final.toFixed(2);
+                    }
+                    
+                    calcularVenda();
+                } else {
+                    console.error('Erro ao carregar produto:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Erro na requisição:', error);
+            });
+    }
+    
+    // Função para calcular valores da venda
+    function calcularVenda() {
+        const quantidade = parseFloat(quantidadeInput.value) || 0;
+        const valorUnitario = parseFloat(valorUnitarioInput.value) || 0;
+        
+        const total = quantidade * valorUnitario;
+        
+        if (produtoAtual) {
+            const custoTotalCalc = quantidade * produtoAtual.custo_base;
+            const lucroTotalCalc = total - custoTotalCalc;
+            const margemRealizadaCalc = custoTotalCalc > 0 ? (lucroTotalCalc / custoTotalCalc) * 100 : 0;
+            
+            totalVenda.textContent = `R$ ${formatarReal(total)}`;
+            custoTotal.textContent = `R$ ${formatarReal(custoTotalCalc)}`;
+            lucroTotal.textContent = `R$ ${formatarReal(lucroTotalCalc)}`;
+            margemRealizada.textContent = `${margemRealizadaCalc.toFixed(1)}%`;
+            
+            // Colorir margem baseada no valor
+            if (margemRealizadaCalc > 30) {
+                margemRealizada.className = 'fw-bold text-success';
+            } else if (margemRealizadaCalc > 10) {
+                margemRealizada.className = 'fw-bold text-warning';
+            } else {
+                margemRealizada.className = 'fw-bold text-danger';
+            }
+        } else {
+            totalVenda.textContent = `R$ ${formatarReal(total)}`;
+            custoTotal.textContent = 'R$ 0,00';
+            lucroTotal.textContent = 'R$ 0,00';
+            margemRealizada.textContent = '0%';
+        }
+    }
+    
+    // Event listeners
+    produtoSelect.addEventListener('change', function() {
+        carregarProduto(this.value);
+    });
+    
+    quantidadeInput.addEventListener('input', calcularVenda);
+    valorUnitarioInput.addEventListener('input', calcularVenda);
+    
+    usarPrecoSugeridoBtn.addEventListener('click', function() {
+        if (produtoAtual) {
+            valorUnitarioInput.value = produtoAtual.preco_final.toFixed(2);
+            calcularVenda();
+        }
+    });
+    
+    // Formatação de campos numéricos
+    [quantidadeInput, valorUnitarioInput].forEach(input => {
+        input.addEventListener('input', function(e) {
+            let value = e.target.value;
+            // Permitir apenas números e ponto decimal
+            value = value.replace(/[^0-9.]/g, '');
+            // Garantir apenas um ponto decimal
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            e.target.value = value;
+        });
+    });
+    
+    // Carregar produto inicial se já selecionado
+    if (produtoSelect.value) {
+        carregarProduto(produtoSelect.value);
+    }
+    
+    // Calcular inicial
+    calcularVenda();
+});
+</script>
+{% endblock %}

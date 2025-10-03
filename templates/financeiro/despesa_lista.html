@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+
+{% block title %}Despesas - Controle Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="bi bi-receipt"></i> Despesas</h1>
+            <a href="{% url 'despesa_criar' %}" class="btn btn-primary">
+                <i class="bi bi-plus"></i> Nova Despesa
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Resumo de Totais -->
+{% if totais.total_despesas %}
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Geral</h6>
+                        <h4>R$ {{ totais.total_despesas|floatformat:2 }}</h4>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-receipt fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Pagas</h6>
+                        <h4>R$ {{ totais.total_pagas|floatformat:2 }}</h4>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-check-circle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Pendentes</h6>
+                        <h4>R$ {{ totais.total_pendentes|floatformat:2 }}</h4>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-clock fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Quantidade</h6>
+                        <h4>{{ totais.count_despesas }}</h4>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-list-ol fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Filtros -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="busca" class="form-label">Buscar</label>
+                        <input type="text" class="form-control" id="busca" name="busca" 
+                               value="{{ busca }}" placeholder="Descrição ou observações">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="categoria" class="form-label">Categoria</label>
+                        <select class="form-select" id="categoria" name="categoria">
+                            <option value="">Todas as categorias</option>
+                            {% for value, label in categorias_choices %}
+                                <option value="{{ value }}" 
+                                        {% if value == categoria_selecionada %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">Todos os status</option>
+                            <option value="pago" {% if status_selecionado == 'pago' %}selected{% endif %}>Pagas</option>
+                            <option value="pendente" {% if status_selecionado == 'pendente' %}selected{% endif %}>Pendentes</option>
+                            <option value="vencido" {% if status_selecionado == 'vencido' %}selected{% endif %}>Vencidas</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="periodo" class="form-label">Período</label>
+                        <select class="form-select" id="periodo" name="periodo">
+                            <option value="">Todos os períodos</option>
+                            <option value="hoje" {% if periodo_selecionado == 'hoje' %}selected{% endif %}>Hoje</option>
+                            <option value="semana" {% if periodo_selecionado == 'semana' %}selected{% endif %}>Última semana</option>
+                            <option value="mes" {% if periodo_selecionado == 'mes' %}selected{% endif %}>Este mês</option>
+                            <option value="ano" {% if periodo_selecionado == 'ano' %}selected{% endif %}>Este ano</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-outline-primary me-2">
+                            <i class="bi bi-search"></i> Filtrar
+                        </button>
+                        <a href="{% url 'despesa_lista' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x"></i> Limpar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Despesas -->
+{% if page_obj %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th>Vencimento</th>
+                                <th>Data</th>
+                                <th width="150">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for despesa in page_obj %}
+                            <tr>
+                                <td>
+                                    <strong>{{ despesa.descricao }}</strong>
+                                    {% if despesa.recorrente %}
+                                        <br><small class="text-info"><i class="bi bi-arrow-repeat"></i> Recorrente</small>
+                                    {% endif %}
+                                    {% if despesa.observacoes %}
+                                        <br><small class="text-muted">{{ despesa.observacoes|truncatechars:50 }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ despesa.categoria_display }}</span>
+                                </td>
+                                <td>
+                                    <strong class="text-warning">{{ despesa.valor_formatado }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ despesa.status_pagamento_class }}">
+                                        {{ despesa.status_pagamento }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if despesa.data_vencimento %}
+                                        <small class="text-muted">{{ despesa.data_vencimento|date:"d/m/Y" }}</small>
+                                    {% else %}
+                                        <small class="text-muted">-</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ despesa.data_despesa|date:"d/m/Y H:i" }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'despesa_detalhe' despesa.pk %}" 
+                                           class="btn btn-sm btn-outline-primary" title="Ver detalhes">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        {% if not despesa.pago %}
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-success marcar-pago-btn" 
+                                                    data-despesa-id="{{ despesa.pk }}"
+                                                    data-despesa-nome="{{ despesa.descricao }}"
+                                                    title="Marcar como pago">
+                                                <i class="bi bi-check"></i>
+                                            </button>
+                                        {% endif %}
+                                        <a href="{% url 'despesa_editar' despesa.pk %}" 
+                                           class="btn btn-sm btn-outline-secondary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{% url 'despesa_excluir' despesa.pk %}" 
+                                           class="btn btn-sm btn-outline-danger" title="Excluir">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Paginação -->
+{% if page_obj.has_other_pages %}
+<nav aria-label="Paginação de despesas" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if busca %}&busca={{ busca }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}{% if status_selecionado %}&status={{ status_selecionado }}{% endif %}{% if periodo_selecionado %}&periodo={{ periodo_selecionado }}{% endif %}">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}{% if status_selecionado %}&status={{ status_selecionado }}{% endif %}{% if periodo_selecionado %}&periodo={{ periodo_selecionado }}{% endif %}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if busca %}&busca={{ busca }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}{% if status_selecionado %}&status={{ status_selecionado }}{% endif %}{% if periodo_selecionado %}&periodo={{ periodo_selecionado }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}{% if status_selecionado %}&status={{ status_selecionado }}{% endif %}{% if periodo_selecionado %}&periodo={{ periodo_selecionado }}{% endif %}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if busca %}&busca={{ busca }}{% endif %}{% if categoria_selecionada %}&categoria={{ categoria_selecionada }}{% endif %}{% if status_selecionado %}&status={{ status_selecionado }}{% endif %}{% if periodo_selecionado %}&periodo={{ periodo_selecionado }}{% endif %}">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle fs-1 mb-3"></i>
+            <h4>Nenhuma despesa encontrada</h4>
+            {% if busca or categoria_selecionada or status_selecionado or periodo_selecionado %}
+                <p>Não foram encontradas despesas com os filtros aplicados.</p>
+                <a href="{% url 'despesa_lista' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-x"></i> Limpar Filtros
+                </a>
+            {% else %}
+                <p>Você ainda não registrou nenhuma despesa.</p>
+                <a href="{% url 'despesa_criar' %}" class="btn btn-primary">
+                    <i class="bi bi-plus"></i> Registrar Primeira Despesa
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Botões de marcar como pago
+    const marcarPagoBtns = document.querySelectorAll('.marcar-pago-btn');
+    
+    marcarPagoBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const despesaId = this.dataset.despesaId;
+            const despesaNome = this.dataset.despesaNome;
+            
+            if (confirm(`Marcar "${despesaNome}" como paga?`)) {
+                fetch(`/despesas/${despesaId}/marcar-pago/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Recarregar a página para atualizar a lista
+                        location.reload();
+                    } else {
+                        alert('Erro: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao marcar despesa como paga');
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
